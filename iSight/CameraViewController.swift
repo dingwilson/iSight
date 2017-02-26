@@ -9,6 +9,7 @@
 import UIKit
 import AVFoundation
 import Clarifai
+import Spark_SDK
 
 class CameraViewController: UIViewController {
     
@@ -18,7 +19,11 @@ class CameraViewController: UIViewController {
     var stillImageOutput: AVCaptureStillImageOutput?
     var previewLayer: AVCaptureVideoPreviewLayer?
     
+    let deviceID = "30003e000947343337373738"
+    
     var app : ClarifaiApp?
+    
+    var photon : SparkDevice? = nil
     
     @IBOutlet weak var takePhotoButton: UIButton!
     
@@ -32,9 +37,10 @@ class CameraViewController: UIViewController {
                 let appSecret = (dict["appSecret"] as! String)
                 
                 app = ClarifaiApp(appID: appID, appSecret: appSecret)
-                print("Success")
             }
         }
+        
+        setupPhoton()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -89,9 +95,28 @@ class CameraViewController: UIViewController {
                     for concepts: ClarifaiConcept in (output?.concepts)! {
                         print(concepts.conceptName)
                     }
+                    
+                    self.sendWordToPhoton(word: "Hello")
                 }
             })
         })
+    }
+    
+    func setupPhoton() {
+        SparkCloud.sharedInstance().getDevice(self.deviceID, completion: { (device:SparkDevice?, error:Error?) -> Void in
+            if let d = device {
+                self.photon = d
+            }
+        })
+    }
+    
+    func sendWordToPhoton(word: String) {
+        let funcArgs = ["hello"]
+        let task = photon!.callFunction("word", withArguments: funcArgs) { (resultCode : NSNumber?, error : Error?) -> Void in
+            if (error == nil) {
+                print("Success")
+            }
+        }
     }
     
     func takePhoto() {

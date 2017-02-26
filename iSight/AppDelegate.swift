@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Spark_SDK
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,6 +17,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        if let path = Bundle.main.path(forResource: "Keys", ofType: "plist") {
+            let dictRoot = NSDictionary(contentsOfFile: path)
+            if let dict = dictRoot {
+                let email = (dict["email"] as! String)
+                let password = (dict["password"] as! String)
+                
+                SparkCloud.sharedInstance().login(withUser: email, password: password) { (error:Error?) -> Void in
+                    if error != nil {
+                        print("Wrong credentials or no internet connectivity, please try again")
+                    }
+                    else {
+                        print("Logged in")
+                    }
+                }
+            }
+        }
+        
         return true
     }
 
