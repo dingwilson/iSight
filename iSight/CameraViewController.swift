@@ -91,12 +91,20 @@ class CameraViewController: UIViewController {
             model?.predict(on: [clarifaiImage!], completion: {(outputs, error) in
                 if error == nil {
                     let output = outputs?[0]
-                    print("NEW=========")
+                    
+                    var tags : [String] = []
+                    
                     for concepts: ClarifaiConcept in (output?.concepts)! {
-                        print(concepts.conceptName)
+                        tags.append(concepts.conceptName)
                     }
                     
-                    self.sendWordToPhoton(word: "Hello")
+                    tags = self.sanitize(tags: tags)
+                    
+                    print(tags)
+                    
+                    self.sendWordToPhoton(word: tags[0])
+                    
+                    print(tags[0])
                 }
             })
         })
@@ -111,12 +119,18 @@ class CameraViewController: UIViewController {
     }
     
     func sendWordToPhoton(word: String) {
-        let funcArgs = ["hello"]
-        let task = photon!.callFunction("word", withArguments: funcArgs) { (resultCode : NSNumber?, error : Error?) -> Void in
+        let task = photon!.callFunction("word", withArguments: [word]) { (resultCode : NSNumber?, error : Error?) -> Void in
             if (error == nil) {
                 print("Success")
             }
         }
+    }
+    
+    func sanitize(tags: [String]) -> [String] { // Remove generic terms here
+        var tags = tags.filter{$0 != "no person"}
+        tags = tags.filter{$0 != "people"}
+        
+        return tags
     }
     
     func takePhoto() {
